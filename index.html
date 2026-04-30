@@ -42,7 +42,8 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
 .err{font-size:12px;color:#c0392b;margin-top:4px}
 button.calc-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer;margin-bottom:12px}
 button.calc-btn:hover{background:#f7f7f5}
-#kesimpulan-box {margin-top: 15px; padding: 12px; background: #eef7f4; border-left: 4px solid #1D9E75; font-size: 13px; border-radius: 4px; display: none;}
+/* Tambahan styling untuk kotak kesimpulan */
+#box-kesimpulan {margin-top: 15px; padding: 12px; background: #eef7f4; border-left: 4px solid #1D9E75; font-size: 13px; border-radius: 4px; display: none; line-height: 1.6;}
 </style>
 </head>
 <body>
@@ -53,14 +54,14 @@ button.calc-btn:hover{background:#f7f7f5}
 <div class="card">
   <div class="sec">Parameter peserta</div>
   <div class="grid2" style="margin-bottom:10px">
-    <div class="field"><label>Usia saat ini (x)</label><input type="number" id="p-age" value="30"></div>
-    <div class="field"><label>Entry age (y)</label><input type="number" id="p-entry" value="25"></div>
-    <div class="field"><label>Usia pensiun (r)</label><input type="number" id="p-ret" value="55"></div>
-    <div class="field"><label>Gaji saat ini (juta Rp)</label><input type="number" id="p-sal" value="5" step="0.5"></div>
-    <div class="field"><label>Kenaikan gaji (%/thn)</label><input type="number" id="p-salg" value="4" step="0.5"></div>
-    <div class="field"><label>Tingkat diskonto (%/thn)</label><input type="number" id="p-disc" value="7" step="0.5"></div>
+    <div class="field"><label>Usia saat ini (x)</label><input type="number" id="p-age" value="30" min="18" max="99"></div>
+    <div class="field"><label>Entry age (y)</label><input type="number" id="p-entry" value="25" min="18" max="60"></div>
+    <div class="field"><label>Usia pensiun (r)</label><input type="number" id="p-ret" value="65" min="45" max="100"></div>
+    <div class="field"><label>Gaji saat ini (juta Rp)</label><input type="number" id="p-sal" value="5" min="1" max="100" step="0.5"></div>
+    <div class="field"><label>Kenaikan gaji (%/thn)</label><input type="number" id="p-salg" value="4" min="0" max="100" step="0.5"></div>
+    <div class="field"><label>Tingkat diskonto (%/thn)</label><input type="number" id="p-disc" value="7" min="1" max="100" step="0.5"></div>
   </div>
-  <div class="field"><label>Faktor manfaat k (%)</label><input type="number" id="p-k" value="2" step="0.1"></div>
+  <div class="field"><label>Faktor manfaat k (%) — formula: k × masa kerja × gaji terakhir</label><input type="number" id="p-k" value="2" min="0.5" max="5" step="0.1"></div>
 </div>
 
 <div class="card">
@@ -69,25 +70,29 @@ button.calc-btn:hover{background:#f7f7f5}
   <div class="dec-row active" id="row-wr">
     <input type="checkbox" class="dec-check" id="chk-wr" checked onchange="toggleDec('wr')">
     <span class="dec-name">Withdrawal (pengunduran diri)</span>
-    <div class="dec-input-wrap"><input type="number" id="in-wr" value="1" step="0.5"><span class="dec-unit">%/thn</span></div>
+    <span class="dec-sub">Rate tetap per tahun</span>
+    <div class="dec-input-wrap"><input type="number" id="in-wr" value="1" min="0" max="30" step="0.5"><span class="dec-unit">%/thn</span></div>
   </div>
 
   <div class="dec-row active" id="row-mf">
     <input type="checkbox" class="dec-check" id="chk-mf" checked onchange="toggleDec('mf')">
     <span class="dec-name">Mortality (kematian)</span>
-    <div class="dec-input-wrap"><input type="number" id="in-mf" value="1" step="0.1"><span class="dec-unit">× TMI</span></div>
+    <span class="dec-sub">Faktor pengali TMI IV 2019</span>
+    <div class="dec-input-wrap"><input type="number" id="in-mf" value="1" min="0.1" max="5" step="0.1"><span class="dec-unit">× TMI</span></div>
   </div>
 
   <div class="dec-row active" id="row-er">
     <input type="checkbox" class="dec-check" id="chk-er" checked onchange="toggleDec('er')">
     <span class="dec-name">Early retirement (pensiun dini)</span>
-    <div class="dec-input-wrap"><input type="number" id="in-er" value="2" step="0.5"><span class="dec-unit">%/thn</span></div>
+    <span class="dec-sub">Mulai 10 thn sebelum pensiun</span>
+    <div class="dec-input-wrap"><input type="number" id="in-er" value="2" min="0" max="30" step="0.5"><span class="dec-unit">%/thn</span></div>
   </div>
 
   <div class="dec-row active" id="row-dis">
     <input type="checkbox" class="dec-check" id="chk-dis" checked onchange="toggleDec('dis')">
     <span class="dec-name">Disability (kecacatan)</span>
-    <div class="dec-input-wrap"><input type="number" id="in-dis" value="0.003" step="0.001"><span class="dec-unit">× qx</span></div>
+    <span class="dec-sub">Faktor pengali mortality rate</span>
+    <div class="dec-input-wrap"><input type="number" id="in-dis" value="0.003" min="0.001" max="0.05" step="0.001"><span class="dec-unit">× qx</span></div>
   </div>
 
   <div id="err-msg" class="err" style="display:none">Pilih minimal 1 decrement.</div>
@@ -98,18 +103,20 @@ button.calc-btn:hover{background:#f7f7f5}
 <div id="results" style="display:none">
   <div class="metric-grid">
     <div class="metric"><div class="metric-label">Normal Cost</div><div class="metric-val" id="nc-val">—</div><div class="metric-sub">per tahun</div></div>
-    <div class="metric"><div class="metric-label">Survival prob.</div><div class="metric-val" id="surv-val">—</div><div class="metric-sub">aktif s.d pensiun</div></div>
+    <div class="metric"><div class="metric-label">Survival prob.</div><div class="metric-val" id="surv-val">—</div><div class="metric-sub">aktif sampai pensiun</div></div>
     <div class="metric"><div class="metric-label">PVFB</div><div class="metric-val" id="pvfb-val">—</div><div class="metric-sub">nilai kini manfaat</div></div>
   </div>
 
-  <div class="card" id="elast-section">
-    <div class="sec">Sensitivitas per Decrement</div>
+  <div class="card" id="elast-section" style="display:none">
+    <div class="sec">Elastisitas per decrement</div>
     <div id="elast-bars"></div>
-    <div id="kesimpulan-box"></div>
+    <!-- Elemen baru untuk kalimat kesimpulan otomatis -->
+    <div id="box-kesimpulan"></div>
+    <div style="font-size:12px;color:#aaa;margin-top:6px">Elastisitas = % perubahan NC per 1% perubahan asumsi. Makin besar = makin sensitif.[cite: 2]</div>
   </div>
 
   <div class="card">
-    <div class="sec">Langkah Perhitungan Manual</div>
+    <div class="sec">Penjelasan perhitungan manual</div>
     <div id="manual-steps"></div>
   </div>
 </div>
@@ -152,20 +159,23 @@ function computeNC(p, overrides={}) {
   const v = 1/(1+pp.disc);
   const yearsToRet = pp.ret - pp.age;
   const totalYears = pp.ret - pp.entry;
-  if (yearsToRet <= 0 || totalYears <= 0) return {nc:0, surv:0, pvfb:0};
+  if (yearsToRet <= 0 || totalYears <= 0) return {nc:0, surv:0, pvfb:0, pvfncFactor:0, benefit:0, salAtRet:0, survByYear:[]};
 
   let survActive = 1;
+  const survByYear = [];
   for (let t=0; t<yearsToRet; t++) {
     const a = pp.age + t;
     const qm = pp.useMf ? qx(a)*pp.mf : 0;
     const qw = pp.useWr ? ((a < pp.ret-5) ? pp.wr : 0) : 0;
     const qe = pp.useEr ? ((a >= pp.ret-10) ? pp.er : 0) : 0;
     const qd = pp.useDis ? qm*pp.dis*100 : 0;
-    survActive *= (1 - Math.min(qm+qw+qe+qd, 0.99));
+    const qt = Math.min(qm+qw+qe+qd, 0.99);
+    survActive *= (1-qt);
+    survByYear.push({a, qm, qw, qe, qd, qt, surv: survActive});
   }
 
   const salAtRet = pp.sal * Math.pow(1+pp.salg, yearsToRet);
-  const benefit = pp.k * totalYears * salAtRet * 12;
+  const benefit = pp.k * (pp.ret - pp.entry) * salAtRet * 12;
   const pvfb = benefit * Math.pow(v, yearsToRet) * survActive * 10;
 
   let pvfncFactor = 0;
@@ -176,22 +186,34 @@ function computeNC(p, overrides={}) {
     const qw = pp.useWr ? ((a < pp.ret-5) ? pp.wr : 0) : 0;
     const qe = pp.useEr ? ((a >= pp.ret-10) ? pp.er : 0) : 0;
     const qd = pp.useDis ? qm*pp.dis*100 : 0;
-    survTemp *= (1 - Math.min(qm+qw+qe+qd, 0.99));
+    const qt = Math.min(qm+qw+qe+qd, 0.99);
+    survTemp *= (1-qt);
     pvfncFactor += survTemp * Math.pow(v, t+1);
   }
 
-  return {nc: pvfncFactor > 0 ? (pvfb/pvfncFactor)*1e6 : 0, surv: survActive, pvfb: pvfb*1e6, benefit: benefit*1e6, salAtRet: salAtRet*1e6, pvfncFactor};
+  const nc = pvfncFactor > 0 ? pvfb/pvfncFactor : 0;
+  return {nc: nc*1e6, surv: survActive, pvfb: pvfb*1e6, benefit: benefit*1e6, salAtRet: salAtRet*1e6, pvfncFactor, survByYear};
 }
 
 function fmt(n) {
-  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  if (Math.abs(n) >= 1e9) return 'Rp '+(n/1e9).toFixed(3)+' M';
+  if (Math.abs(n) >= 1e6) return 'Rp '+(n/1e6).toFixed(2)+' jt';
+  return 'Rp '+Math.round(n).toLocaleString('id-ID');
+}
+
+function calcElast(key, useKey, p, baseNC) {
+  if (baseNC === 0 || !p[useKey]) return null;
+  const delta = 0.01;
+  const cur = p[key];
+  const up = computeNC(p, {[key]: cur*(1+delta)}).nc;
+  return ((up-baseNC)/baseNC)/delta;
 }
 
 function calc() {
   const p = getP();
-  const activeCount = [p.useWr, p.useMf, p.useEr, p.useDis].filter(Boolean).length;
-  document.getElementById('err-msg').style.display = activeCount === 0 ? 'block' : 'none';
-  if (activeCount === 0) return;
+  const active = [p.useWr, p.useMf, p.useEr, p.useDis].filter(Boolean).length;
+  document.getElementById('err-msg').style.display = active === 0 ? 'block' : 'none';
+  if (active === 0) return;
 
   const res = computeNC(p);
   document.getElementById('results').style.display = 'block';
@@ -202,41 +224,90 @@ function calc() {
   const decs = [
     {key:'wr', useKey:'useWr', label:'Withdrawal', color:'#378ADD'},
     {key:'mf', useKey:'useMf', label:'Mortality', color:'#D85A30'},
-    {key:'er', useKey:'useEr', label:'Early Retirement', color:'#BA7517'},
-    {key:'dis', useKey:'useDis', label:'Disability', color:'#7F77DD'}
+    {key:'er', useKey:'useEr', label:'Early retirement', color:'#BA7517'},
+    {key:'dis', useKey:'useDis', label:'Disability', color:'#7F77DD'},
   ].filter(d => p[d.useKey]);
 
-  if (decs.length > 0) {
-    const elasticities = decs.map(d => {
-      const up = computeNC(p, {[d.key]: p[d.key]*1.01}).nc;
-      return {...d, e: (up - res.nc)/res.nc/0.01};
-    });
-
-    const palingSensitif = elasticities.reduce((a, b) => Math.abs(a.e) > Math.abs(b.e) ? a : b);
-    const maxAbs = Math.max(...elasticities.map(x => Math.abs(x.e)), 0.001);
-
+  const elastSection = document.getElementById('elast-section');
+  if (decs.length >= 2) {
+    elastSection.style.display = 'block';
+    const elasticities = decs.map(d => ({...d, e: calcElast(d.key, d.useKey, p, res.nc)})).filter(d => d.e !== null);
+    const maxAbs = Math.max(...elasticities.map(d => Math.abs(d.e)), 0.001);
+    const topKeyObj = elasticities.reduce((a,b) => Math.abs(a.e) > Math.abs(b.e) ? a : b);
+    
     document.getElementById('elast-bars').innerHTML = elasticities.map(d => {
       const pct = (Math.abs(d.e)/maxAbs*100).toFixed(1);
+      const sign = d.e < 0 ? '−' : '+';
       return `<div class="bar-row">
-        <span class="bar-name">${d.label}</span>
+        <span class="bar-name">${d.label}${d.key===topKeyObj.key?'<span class="badge">paling sensitif</span>':''}</span>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${d.color}"></div></div>
-        <span class="bar-elast">${d.e < 0 ? '−' : '+'}${Math.abs(d.e).toFixed(4)}</span>
+        <span class="bar-elast" style="color:${d.e<-0.01?'#0F6E56':d.e>0.01?'#A32D2D':'#888'}">${sign}${Math.abs(d.e).toFixed(4)}</span>
       </div>`;
     }).join('');
 
-    const box = document.getElementById('kesimpulan-box');
+    // Update kalimat kesimpulan otomatis[cite: 2]
+    const box = document.getElementById('box-kesimpulan');
     box.style.display = 'block';
-    const arah = palingSensitif.e < 0 ? "menurunkan" : "meningkatkan";
-    box.innerHTML = `Jadi, decrement <strong>${palingSensitif.label}</strong> adalah yang paling memengaruhi valuasi kali ini. Perubahan asumsi pada faktor ini akan sangat signifikan <strong>${arah}</strong> nilai Normal Cost dibandingkan faktor lainnya.`;
+    const arahDampak = topKeyObj.e < 0 ? "menurunkan" : "meningkatkan";
+    box.innerHTML = `Jadi decrement <strong>${topKeyObj.label}</strong> yang paling memengaruhi valuasi dana pensiun kali ini adalah <strong>${topKeyObj.label}</strong>. Perubahan asumsi pada faktor ini akan secara signifikan <strong>${arahDampak}</strong> nilai Normal Cost dibandingkan faktor lainnya.[cite: 2]`;
+
+  } else {
+    elastSection.style.display = 'none';
+    document.getElementById('box-kesimpulan').style.display = 'none';
   }
 
+  const masaKerja = p.ret - p.entry;
+  const yearsToRet = p.ret - p.age;
+  const ex1 = res.survByYear[0] || {};
+
   document.getElementById('manual-steps').innerHTML = `
-    <div class="step-box">Step 1 — Gaji Proyeksi: <code>${fmt(res.salAtRet)}</code></div>
-    <div class="step-box">Step 2 — Manfaat Pensiun (Br): <code>${fmt(res.benefit)}/thn</code></div>
-    <div class="step-box">Step 3 — Probabilitas Survival (τ): <code>${(res.surv*100).toFixed(4)}%</code></div>
-    <div class="step-box">Step 4 — PVFNC Factor: <code>${res.pvfncFactor.toFixed(6)}</code></div>
-    <div class="step-box">Step 5 — Normal Cost (EAN): <code><strong>${fmt(res.nc)} / tahun</strong></code></div>
-  `;
+<div class="step-box">
+  <div class="step-title">Step 1 — Hitung gaji proyeksi saat pensiun</div>
+  Gaji saat ini: <code>Rp ${p.sal} jt/bln</code><br>
+  Kenaikan gaji: <code>${(p.salg*100).toFixed(1)}%/thn</code> selama <code>${yearsToRet} tahun</code><br>
+  Gaji terakhir = <code>${p.sal} × (1 + ${(p.salg*100).toFixed(1)}%)^${yearsToRet}</code> = <code>${fmt(res.salAtRet)}/bln</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 2 — Hitung manfaat pensiun (B_r)</div>
+  Formula: <code>B_r = k × masa kerja × gaji terakhir × 12</code><br>
+  = <code>${(p.k*100).toFixed(1)}% × ${masaKerja} thn × ${fmt(res.salAtRet)}/bln × 12</code><br>
+  = <code>${fmt(res.benefit)}/thn</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 3 — Bangun multiple decrement table</div>
+  Untuk setiap usia x = ${p.age} sampai ${p.ret-1}, hitung:<br>
+  <code>q_τ(x) = ${[p.useMf?'q_mort':'', p.useWr?'q_wd':'', p.useEr?'q_er':'', p.useDis?'q_dis':''].filter(Boolean).join(' + ')}</code><br>
+  <code>p_τ(x) = 1 − q_τ(x)</code><br><br>
+  Contoh usia ${ex1.a !== undefined ? ex1.a : p.age}:<br>
+  ${p.useMf ? `— Mortality: <code>qm = ${(ex1.qm||0).toFixed(6)}</code><br>` : ''}
+  ${p.useWr ? `— Withdrawal: <code>qw = ${(ex1.qw||0).toFixed(6)}</code><br>` : ''}
+  ${p.useEr ? `— Early ret.: <code>qe = ${(ex1.qe||0).toFixed(6)}</code><br>` : ''}
+  ${p.useDis ? `— Disability: <code>qd = ${(ex1.qd||0).toFixed(6)}</code><br>` : ''}
+  Total: <code>q_τ = ${(ex1.qt||0).toFixed(6)}</code> → <code>p_τ = ${(1-(ex1.qt||0)).toFixed(6)}</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 4 — Hitung survival probability sampai pensiun</div>
+  <code>${yearsToRet}p_x^(τ) = ∏ p_τ(x+t)</code>, t = 0, 1, ..., ${yearsToRet-1}<br>
+  = <code>${res.surv.toFixed(6)}</code><br>
+  Artinya: probabilitas peserta tetap aktif sampai usia ${p.ret} = <code>${(res.surv*100).toFixed(2)}%</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 5 — Hitung PVFB</div>
+  <code>PVFB = B_r × v^(r−x) × ${yearsToRet}p_x^(τ) × annuity factor</code><br>
+  = <code>${fmt(res.benefit)} × (1/${(1+p.disc).toFixed(3)})^${yearsToRet} × ${res.surv.toFixed(4)} × 10</code><br>
+  = <code>${fmt(res.pvfb)}</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 6 — Hitung PVFNC factor (dari entry age ${p.entry})</div>
+  <code>PVFNC factor = Σ tpx^(τ) × v^t</code>, t = 1, ..., ${masaKerja}<br>
+  = <code>${res.pvfncFactor.toFixed(6)}</code>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 7 — Hitung Normal Cost</div>
+  <code>NC = PVFB / PVFNC factor</code><br>
+  = <code>${fmt(res.pvfb)} / ${res.pvfncFactor.toFixed(6)}</code><br>
+  = <code><strong>${fmt(res.nc)} per tahun</strong></code>
+</div>`;
 }
 </script>
 </body>
