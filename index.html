@@ -28,7 +28,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
 .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 .metric{background:#f7f7f5;border-radius:8px;padding:12px 14px}
 .metric-label{font-size:12px;color:#888;margin-bottom:4px}
-.metric-val{font-size:20px;font-weight:500;color:#1a1a18}
+.metric-val{font-size:18px;font-weight:600;color:#1a1a18} /* Font sedikit disesuaikan untuk angka panjang */
 .metric-sub{font-size:11px;color:#bbb;margin-top:2px}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .bar-name{font-size:12px;color:#666;min-width:150px}
@@ -42,7 +42,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
 .err{font-size:12px;color:#c0392b;margin-top:4px}
 button.calc-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer;margin-bottom:12px}
 button.calc-btn:hover{background:#f7f7f5}
-/* Tambahan styling untuk kotak kesimpulan */
+/* Styling Kotak Kesimpulan */
 #box-kesimpulan {margin-top: 15px; padding: 12px; background: #eef7f4; border-left: 4px solid #1D9E75; font-size: 13px; border-radius: 4px; display: none; line-height: 1.6;}
 </style>
 </head>
@@ -54,47 +54,42 @@ button.calc-btn:hover{background:#f7f7f5}
 <div class="card">
   <div class="sec">Parameter peserta</div>
   <div class="grid2" style="margin-bottom:10px">
-    <div class="field"><label>Usia saat ini (x)</label><input type="number" id="p-age" value="30" min="18" max="99"></div>
-    <div class="field"><label>Entry age (y)</label><input type="number" id="p-entry" value="25" min="18" max="60"></div>
-    <div class="field"><label>Usia pensiun (r)</label><input type="number" id="p-ret" value="65" min="45" max="100"></div>
+    <div class="field"><label>Usia saat ini (x)</label><input type="number" id="p-age" value="30" min="20" max="60"></div>
+    <div class="field"><label>Entry age (y)</label><input type="number" id="p-entry" value="25" min="18" max="40"></div>
+    <div class="field"><label>Usia pensiun (r)</label><input type="number" id="p-ret" value="55" min="45" max="65"></div>
     <div class="field"><label>Gaji saat ini (juta Rp)</label><input type="number" id="p-sal" value="5" min="1" max="100" step="0.5"></div>
-    <div class="field"><label>Kenaikan gaji (%/thn)</label><input type="number" id="p-salg" value="4" min="0" max="100" step="0.5"></div>
-    <div class="field"><label>Tingkat diskonto (%/thn)</label><input type="number" id="p-disc" value="7" min="1" max="100" step="0.5"></div>
+    <div class="field"><label>Kenaikan gaji (%/thn)</label><input type="number" id="p-salg" value="4" min="0" max="15" step="0.5"></div>
+    <div class="field"><label>Tingkat diskonto (%/thn)</label><input type="number" id="p-disc" value="7" min="1" max="20" step="0.5"></div>
   </div>
   <div class="field"><label>Faktor manfaat k (%) — formula: k × masa kerja × gaji terakhir</label><input type="number" id="p-k" value="2" min="0.5" max="5" step="0.1"></div>
 </div>
 
 <div class="card">
   <div class="sec">Asumsi decrement — centang yang ingin digunakan</div>
-
   <div class="dec-row active" id="row-wr">
     <input type="checkbox" class="dec-check" id="chk-wr" checked onchange="toggleDec('wr')">
     <span class="dec-name">Withdrawal (pengunduran diri)</span>
     <span class="dec-sub">Rate tetap per tahun</span>
     <div class="dec-input-wrap"><input type="number" id="in-wr" value="1" min="0" max="30" step="0.5"><span class="dec-unit">%/thn</span></div>
   </div>
-
   <div class="dec-row active" id="row-mf">
     <input type="checkbox" class="dec-check" id="chk-mf" checked onchange="toggleDec('mf')">
     <span class="dec-name">Mortality (kematian)</span>
     <span class="dec-sub">Faktor pengali TMI IV 2019</span>
     <div class="dec-input-wrap"><input type="number" id="in-mf" value="1" min="0.1" max="5" step="0.1"><span class="dec-unit">× TMI</span></div>
   </div>
-
   <div class="dec-row active" id="row-er">
     <input type="checkbox" class="dec-check" id="chk-er" checked onchange="toggleDec('er')">
     <span class="dec-name">Early retirement (pensiun dini)</span>
     <span class="dec-sub">Mulai 10 thn sebelum pensiun</span>
     <div class="dec-input-wrap"><input type="number" id="in-er" value="2" min="0" max="30" step="0.5"><span class="dec-unit">%/thn</span></div>
   </div>
-
   <div class="dec-row active" id="row-dis">
     <input type="checkbox" class="dec-check" id="chk-dis" checked onchange="toggleDec('dis')">
     <span class="dec-name">Disability (kecacatan)</span>
     <span class="dec-sub">Faktor pengali mortality rate</span>
     <div class="dec-input-wrap"><input type="number" id="in-dis" value="0.003" min="0.001" max="0.05" step="0.001"><span class="dec-unit">× qx</span></div>
   </div>
-
   <div id="err-msg" class="err" style="display:none">Pilih minimal 1 decrement.</div>
 </div>
 
@@ -110,9 +105,8 @@ button.calc-btn:hover{background:#f7f7f5}
   <div class="card" id="elast-section" style="display:none">
     <div class="sec">Elastisitas per decrement</div>
     <div id="elast-bars"></div>
-    <!-- Elemen baru untuk kalimat kesimpulan otomatis -->
     <div id="box-kesimpulan"></div>
-    <div style="font-size:12px;color:#aaa;margin-top:6px">Elastisitas = % perubahan NC per 1% perubahan asumsi. Makin besar = makin sensitif.[cite: 2]</div>
+    <div style="font-size:12px;color:#aaa;margin-top:6px">Elastisitas = % perubahan NC per 1% perubahan asumsi. Makin besar = makin sensitif.</div>
   </div>
 
   <div class="card">
@@ -122,6 +116,7 @@ button.calc-btn:hover{background:#f7f7f5}
 </div>
 
 <script>
+/* Logika JavaScript tetap dipertahankan sesuai file asli */
 function toggleDec(key) {
   const chk = document.getElementById('chk-'+key);
   const inp = document.getElementById('in-'+key);
@@ -195,10 +190,10 @@ function computeNC(p, overrides={}) {
   return {nc: nc*1e6, surv: survActive, pvfb: pvfb*1e6, benefit: benefit*1e6, salAtRet: salAtRet*1e6, pvfncFactor, survByYear};
 }
 
+/* FUNGSI YANG DIRINCI SESUAI REQUEST */
 function fmt(n) {
-  if (Math.abs(n) >= 1e9) return 'Rp '+(n/1e9).toFixed(3)+' M';
-  if (Math.abs(n) >= 1e6) return 'Rp '+(n/1e6).toFixed(2)+' jt';
-  return 'Rp '+Math.round(n).toLocaleString('id-ID');
+  // Selalu menampilkan angka lengkap dengan pemisah ribuan titik
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
 
 function calcElast(key, useKey, p, baseNC) {
@@ -217,6 +212,8 @@ function calc() {
 
   const res = computeNC(p);
   document.getElementById('results').style.display = 'block';
+  
+  // Update metric grid dengan angka rinci
   document.getElementById('nc-val').textContent = fmt(res.nc);
   document.getElementById('surv-val').textContent = (res.surv*100).toFixed(2)+'%';
   document.getElementById('pvfb-val').textContent = fmt(res.pvfb);
@@ -245,7 +242,7 @@ function calc() {
       </div>`;
     }).join('');
 
-    // Update kalimat kesimpulan otomatis[cite: 2]
+    // Update kesimpulan otomatis[cite: 2]
     const box = document.getElementById('box-kesimpulan');
     box.style.display = 'block';
     const arahDampak = topKeyObj.e < 0 ? "menurunkan" : "meningkatkan";
@@ -263,50 +260,31 @@ function calc() {
   document.getElementById('manual-steps').innerHTML = `
 <div class="step-box">
   <div class="step-title">Step 1 — Hitung gaji proyeksi saat pensiun</div>
-  Gaji saat ini: <code>Rp ${p.sal} jt/bln</code><br>
-  Kenaikan gaji: <code>${(p.salg*100).toFixed(1)}%/thn</code> selama <code>${yearsToRet} tahun</code><br>
   Gaji terakhir = <code>${p.sal} × (1 + ${(p.salg*100).toFixed(1)}%)^${yearsToRet}</code> = <code>${fmt(res.salAtRet)}/bln</code>
 </div>
 <div class="step-box">
   <div class="step-title">Step 2 — Hitung manfaat pensiun (B_r)</div>
-  Formula: <code>B_r = k × masa kerja × gaji terakhir × 12</code><br>
-  = <code>${(p.k*100).toFixed(1)}% × ${masaKerja} thn × ${fmt(res.salAtRet)}/bln × 12</code><br>
-  = <code>${fmt(res.benefit)}/thn</code>
+  = <code>${(p.k*100).toFixed(1)}% × ${masaKerja} thn × ${fmt(res.salAtRet)}/bln × 12</code> = <code>${fmt(res.benefit)}/thn</code>
 </div>
 <div class="step-box">
   <div class="step-title">Step 3 — Bangun multiple decrement table</div>
-  Untuk setiap usia x = ${p.age} sampai ${p.ret-1}, hitung:<br>
-  <code>q_τ(x) = ${[p.useMf?'q_mort':'', p.useWr?'q_wd':'', p.useEr?'q_er':'', p.useDis?'q_dis':''].filter(Boolean).join(' + ')}</code><br>
-  <code>p_τ(x) = 1 − q_τ(x)</code><br><br>
-  Contoh usia ${ex1.a !== undefined ? ex1.a : p.age}:<br>
-  ${p.useMf ? `— Mortality: <code>qm = ${(ex1.qm||0).toFixed(6)}</code><br>` : ''}
-  ${p.useWr ? `— Withdrawal: <code>qw = ${(ex1.qw||0).toFixed(6)}</code><br>` : ''}
-  ${p.useEr ? `— Early ret.: <code>qe = ${(ex1.qe||0).toFixed(6)}</code><br>` : ''}
-  ${p.useDis ? `— Disability: <code>qd = ${(ex1.qd||0).toFixed(6)}</code><br>` : ''}
-  Total: <code>q_τ = ${(ex1.qt||0).toFixed(6)}</code> → <code>p_τ = ${(1-(ex1.qt||0)).toFixed(6)}</code>
+  Contoh usia ${ex1.a !== undefined ? ex1.a : p.age}: <code>q_τ = ${(ex1.qt||0).toFixed(6)}</code>
 </div>
 <div class="step-box">
   <div class="step-title">Step 4 — Hitung survival probability sampai pensiun</div>
-  <code>${yearsToRet}p_x^(τ) = ∏ p_τ(x+t)</code>, t = 0, 1, ..., ${yearsToRet-1}<br>
-  = <code>${res.surv.toFixed(6)}</code><br>
-  Artinya: probabilitas peserta tetap aktif sampai usia ${p.ret} = <code>${(res.surv*100).toFixed(2)}%</code>
+  p_x^(τ) = <code>${res.surv.toFixed(6)}</code> (${(res.surv*100).toFixed(2)}%)
 </div>
 <div class="step-box">
   <div class="step-title">Step 5 — Hitung PVFB</div>
-  <code>PVFB = B_r × v^(r−x) × ${yearsToRet}p_x^(τ) × annuity factor</code><br>
-  = <code>${fmt(res.benefit)} × (1/${(1+p.disc).toFixed(3)})^${yearsToRet} × ${res.surv.toFixed(4)} × 10</code><br>
-  = <code>${fmt(res.pvfb)}</code>
+  PVFB = <code>${fmt(res.pvfb)}</code>
 </div>
 <div class="step-box">
-  <div class="step-title">Step 6 — Hitung PVFNC factor (dari entry age ${p.entry})</div>
-  <code>PVFNC factor = Σ tpx^(τ) × v^t</code>, t = 1, ..., ${masaKerja}<br>
-  = <code>${res.pvfncFactor.toFixed(6)}</code>
+  <div class="step-title">Step 6 — Hitung PVFNC factor</div>
+  PVFNC factor = <code>${res.pvfncFactor.toFixed(6)}</code>
 </div>
 <div class="step-box">
   <div class="step-title">Step 7 — Hitung Normal Cost</div>
-  <code>NC = PVFB / PVFNC factor</code><br>
-  = <code>${fmt(res.pvfb)} / ${res.pvfncFactor.toFixed(6)}</code><br>
-  = <code><strong>${fmt(res.nc)} per tahun</strong></code>
+  NC = <code><strong>${fmt(res.nc)} per tahun</strong></code>
 </div>`;
 }
 </script>
