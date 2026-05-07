@@ -26,7 +26,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
 .dec-input-wrap input[type=number]{width:78px;padding:5px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a18}
 .dec-input-wrap input:disabled{opacity:0.35;cursor:not-allowed}
 .dec-unit{font-size:12px;color:#aaa}
-.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.metric-grid .metric:nth-child(4),.metric-grid .metric:nth-child(5){grid-column:span 1}
 .metric{background:#f7f7f5;border-radius:8px;padding:12px 14px}
 .metric-label{font-size:12px;color:#888;margin-bottom:4px}
 .metric-val{font-size:18px;font-weight:600;color:#1a1a18}
@@ -93,8 +93,10 @@ button.calc-btn:hover{background:#f7f7f5}
 <div id="results" style="display:none">
   <div class="metric-grid">
     <div class="metric"><div class="metric-label">Normal Cost</div><div class="metric-val" id="nc-val">—</div><div class="metric-sub">per tahun</div></div>
+    <div class="metric"><div class="metric-label">Actuarial Liability</div><div class="metric-val" id="al-val">—</div><div class="metric-sub">kewajiban aktuaria</div></div>
     <div class="metric"><div class="metric-label">Survival prob.</div><div class="metric-val" id="surv-val">—</div><div class="metric-sub">aktif s.d pensiun</div></div>
     <div class="metric"><div class="metric-label">PVFB</div><div class="metric-val" id="pvfb-val">—</div><div class="metric-sub">nilai kini manfaat</div></div>
+    <div class="metric"><div class="metric-label">PVFNC</div><div class="metric-val" id="pvfnc-val">—</div><div class="metric-sub">nilai kini NC masa depan</div></div>
   </div>
 
   <div class="card" id="elast-section">
@@ -160,7 +162,23 @@ function computeDetailed(p, overrides={}) {
     pvfncFactor += sTemp * Math.pow(v, t+1);
   }
 
-  return {nc: (pvfb/pvfncFactor)*1e6, surv: survActive, pvfb: pvfb*1e6, benefit, salAtRet, pvfncFactor, table};
+  // PVFNC from current age (for AL)
+  let pvfncFromNow = 0;
+  let sNow = 1;
+  const yearsFromNow = pp.ret - pp.age;
+  for (let t=0; t<yearsFromNow; t++) {
+    const a = pp.age + t;
+    const qm2 = pp.useMf ? qx(a)*pp.mf : 0;
+    const qw2 = pp.useWr ? ((a < pp.ret-5) ? pp.wr : 0) : 0;
+    const qe2 = pp.useEr ? ((a >= pp.ret-10) ? pp.er : 0) : 0;
+    const qd2 = pp.useDis ? qm2*pp.dis*100 : 0;
+    sNow *= (1-Math.min(qm2+qw2+qe2+qd2, 0.99));
+    pvfncFromNow += sNow * Math.pow(v, t+1);
+  }
+  const pvfncVal = (pvfb/pvfncFactor)*1e6 * pvfncFromNow;
+  const alVal = pvfb*1e6 - pvfncVal;
+
+  return {nc: (pvfb/pvfncFactor)*1e6, al: alVal, pvfncFromNow, pvfncVal, surv: survActive, pvfb: pvfb*1e6, benefit, salAtRet, pvfncFactor, table};
 }
 
 function calc() {
@@ -185,8 +203,10 @@ function calc() {
   const res = computeDetailed(p);
   document.getElementById('results').style.display = 'block';
   document.getElementById('nc-val').textContent = fmt(res.nc);
+  document.getElementById('al-val').textContent = fmt(res.al);
   document.getElementById('surv-val').textContent = (res.surv*100).toFixed(2)+'%';
   document.getElementById('pvfb-val').textContent = fmt(res.pvfb);
+  document.getElementById('pvfnc-val').textContent = fmt(res.pvfncVal);
 
   // Sensitivitas
   const decs = [
@@ -256,6 +276,15 @@ function calc() {
   <div class="step-title">Step 7 — Hitung Normal Cost</div>
   NC = <code>${fmt(res.pvfb)} / ${res.pvfncFactor.toFixed(6)}</code><br>
   = <strong><code>${fmt(res.nc)} per tahun</code></strong>
+</div>
+<div class="step-box">
+  <div class="step-title">Step 8 — Hitung Actuarial Liability (AL)</div>
+  Formula EAN: <code>AL = PVFB − PVFNC</code><br>
+  di mana <code>PVFNC = NC × PVFNC factor dari usia saat ini (x=${p.age})</code><br>
+  PVFNC factor dari x = <code>${res.pvfncFromNow.toFixed(6)}</code><br>
+  PVFNC = <code>${fmt(res.nc)} × ${res.pvfncFromNow.toFixed(6)}</code> = <code>${fmt(res.pvfncVal)}</code><br>
+  AL = <code>${fmt(res.pvfb)} − ${fmt(res.pvfncVal)}</code><br>
+  = <strong><code>${fmt(res.al)}</code></strong>
 </div>`;
 }
 </script>
